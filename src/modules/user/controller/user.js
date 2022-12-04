@@ -1,25 +1,34 @@
-import { findById, findOneAndUpdate } from "../../../../DB/DBMethods.js"
+import { findById, findOne, findOneAndUpdate, updateOne } from "../../../../DB/DBMethods.js"
 import userModel from "../../../../DB/model/User.model.js"
 import cloudinary from "../../../services/cloudinary.js"
 import { asyncHandler } from "../../../services/errorHandling.js"
-
-
-export const userProfile = asyncHandler(async (req, res) => {
+import bcrypt from 'bcryptjs'
+import e from "express"
+export const userProfile = asyncHandler(async (req, res, next) => {
     const user = await findById({
         model: userModel,
         filter: req.user._id
     })
-    console.log(user);
-    return user ? res.status(200).json({ message: `Done`, user }) : nex(new Error('In-valid user', { cause: 404 }))
+    return user ? res.status(200).json({ message: `Done`, user }) : next(new Error('In-valid user', { cause: 404 }))
 })
 
-export const userSharedProfile = asyncHandler(async (req, res) => {
+export const userSharedProfile = asyncHandler(async (req, res, next) => {
     const user = await findById({
         model: userModel,
         filter: req.params.id,
         select: "-password"
     })
-    return user ? res.status(200).json({ message: `Done`, user }) : nex(new Error('In-valid user', { cause: 404 }))
+    if (!user) {
+        return next(new Error('In-valid user', { cause: 404 }))
+    } else {
+        if (req.query.to == 'FE') {
+            return res.status(200).redirect(`${process.env.FEURL}#/user/${user._id}/shared`)
+
+        } else {
+            return res.status(200).json({ message: `Done`, user })
+
+        }
+    }
 })
 
 export const basicInfo = asyncHandler(async (req, res, next) => {
@@ -39,7 +48,6 @@ export const basicInfo = asyncHandler(async (req, res, next) => {
         await cloudinary.uploader.destroy(req.body.imagePublicId)
         return next(new Error('Fail to update', { cause: 400 }))
     } else {
-        console.log(user.imagePublicId);
         if (user.imagePublicId) {
             await cloudinary.uploader.destroy(user.imagePublicId)
         }
@@ -49,7 +57,7 @@ export const basicInfo = asyncHandler(async (req, res, next) => {
 })
 
 export const socialLinks = asyncHandler(async (req, res, next) => {
-    console.log(req.body.links);
+
     const user = await findOneAndUpdate({
         model: userModel,
         filter: req.user._id,
@@ -62,4 +70,29 @@ export const socialLinks = asyncHandler(async (req, res, next) => {
         return res.status(200).json({ message: `Done`, user })
     }
 
+})
+
+
+export const updatePassword = asyncHandler(async (req, res, next) => {
+    const { oldPassword, newPassword } = req.body
+    const user = await findOne({
+        model: userModel,
+        filter: { _id: req.user._id }
+    })
+    if (!user) {
+        return next(new Error('Not register user', { cause: 400 }))
+    }
+
+    const match = bcrypt.compareSync(oldPassword, user.password)
+    if (!match) {
+        return next(new Error('Wrong old Password', { cause: 400 }))
+    }
+
+    const hashPassword = bcrypt.hashSync(newPassword, parseInt(process.env.SaltRound))
+    await updateOne({
+        model: userModel,
+        filter: { _id: user._id },
+        data: { password: hashPassword }
+    })
+    return res.status(200).json({ message: "Done" })
 })

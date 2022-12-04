@@ -22,6 +22,7 @@ export const signup = {
 
     })
 }
+
 export const login = {
 
     body: joi.object().required().keys({
@@ -40,7 +41,7 @@ export const login = {
 export const token = {
 
     params: joi.object().required().keys({
-        token: joi.string().min(10).required().messages({
+        token: joi.string().required().messages({
         }),
 
     })

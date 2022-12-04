@@ -58,3 +58,17 @@ export const socialLinks = {
         }))
     })
 }
+
+
+export const updatePassword = {
+
+    body: joi.object().required().keys({
+
+        oldPassword: joi.string().pattern(new RegExp(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/)).required().messages({
+        }),
+        newPassword: joi.string().pattern(new RegExp(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/)).required().messages({
+        }),
+        cPassword: joi.string().valid(joi.ref('newPassword')).required().messages({
+        }),
+    })
+}

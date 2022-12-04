@@ -4,12 +4,15 @@
   "description": "",
   "main": "app.js",
   "type": "module",
+  "engines": {
+    "node":"14.x"
+  },
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Mahmoud Elwan",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",

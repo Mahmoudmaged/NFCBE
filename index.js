@@ -14,7 +14,7 @@ import cors from 'cors'
 const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-app.use(cors())
+app.use(cors({}))
 // setup port and the baseUrl
 const port = process.env.PORT || 3000
 const baseUrl = process.env.BASEURL
@@ -25,6 +25,9 @@ if (process.env.MOOD === 'DEV') {
 } else {
     app.use(morgan("combined"))
 }
+app.get('/start', (req, res, next) => {
+    res.status(200).json({message:"Done" , data:{url:`${req.protocol}://${req.headers.host}`,baseUrl}})
+})
 
 //Setup API Routing 
 app.use(`${baseUrl}/auth`, indexRouter.authRouter)

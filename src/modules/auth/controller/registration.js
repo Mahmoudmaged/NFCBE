@@ -15,16 +15,25 @@ export const signup = asyncHandler(
             const hash = bcrypt.hashSync(password, parseInt(process.env.SALTROUND))
             const newUser = new userModel({ userName, email, password: hash })
 
-            const token = jwt.sign({ id: newUser._id }, process.env.emailToken, { expiresIn: '1h' })
+            const token = jwt.sign({ id: newUser._id }, process.env.emailToken)
             const link = `${req.protocol}://${req.headers.host}${process.env.BASEURL}/auth/confirmEmail/${token}`
-            const tokenRF = jwt.sign({ id: newUser._id }, process.env.emailToken)
-            const linkRF = `${req.protocol}://${req.headers.host}${process.env.BASEURL}/auth/refreshToken/${tokenRF}`
-
-            const message = `
-            <a href='${link}'>ConfirmEmail </a>
-            <br>
-            <a href='${linkRF}'>Request new confirmation email </a>
-            `
+            // const tokenRF = jwt.sign({ id: newUser._id }, process.env.emailToken)
+            // const linkRF = `${req.protocol}://${req.headers.host}${process.env.BASEURL}/auth/refreshToken/${tokenRF}`
+            const message = `<section> 
+                        <div style="padding:  50px 100px;border-radius: 20px;background-color: white; text-align: center;">
+                            <div>
+                                <img src="https://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/envelope-icon.png" width="100px" alt="">
+                                <h4>Confirmation Email</h4>
+                                <p>Please enter this link to verify your email <a href="${link}">click me</a></p>
+                            
+                            </div>
+                    </div>
+                </section> `;
+            // const message = `
+            // <a href='${link}'>ConfirmEmail </a>
+            // <br>
+            // <a href='${linkRF}'>Request new confirmation email </a>
+            // `
             const info = await sendEmail(email, 'Confirm Email', message)
             if (info?.accepted?.length) {
                 const savedUser = await newUser.save()
@@ -117,8 +126,16 @@ export const sendCode = asyncHandler(async (req, res, next) => {
             filter: { _id: user._id },
             data: { code }
         })
-        await sendEmail(user.email,
-            'forget password', `<h1> Please Use this code : ${code} to reset u password</h1>`)
+        const message = `<section> 
+        <div style="padding:  50px 100px;border-radius: 20px;background-color: white; text-align: center;">
+            <div>
+                <img src="https://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/envelope-icon.png" width="100px" alt="">
+                <h4>Reset Code : ${code}</h4>
+                <p>Enter this code to complete reset your account password</p>
+            </div>
+    </div>
+    </section> `;
+        await sendEmail(user.email, 'Forget password',message)
         return res.status(200).json({ message: "Done" })
     }
 })
